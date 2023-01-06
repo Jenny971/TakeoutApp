@@ -10,7 +10,7 @@ export default function App() {
     const [total, setTotal] = useState(0);
     const [plateItems, setPlateItems] = useState([]);
     const [location, setLocation] = useState({});
-    const { height, width, scale, fontScale } = useWindowDimensions();
+    const { height, width } = useWindowDimensions();
 
     const translation1 = useRef(
         new Animated.ValueXY({ x: width, y: height })
@@ -24,15 +24,15 @@ export default function App() {
 
     function getLocation(layout) {
         setLocation(layout);
-        translation1.x.setValue(layout.width - 150);
+        translation1.x.setValue(layout.width - 140);
         translation1.y.setValue(layout.y - 150);
-        translation2.x.setValue(layout.width - 150);
+        translation2.x.setValue(layout.width - 140);
         translation2.y.setValue(layout.y - 150);
-        translation3.x.setValue(layout.width - 150);
+        translation3.x.setValue(layout.width - 140);
         translation3.y.setValue(layout.y - 150);
     }
 
-    function addItem(item) {
+    const addItem = (item) => {
         if (!plateItems.includes(item.name)) {
             setTotal(total + item.price);
             setPlateItems([...plateItems, item.name]);

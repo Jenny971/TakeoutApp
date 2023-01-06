@@ -1,40 +1,72 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
     View,
     Text,
     StyleSheet,
-    Image,
-    Dimensions,
-    Pressable,
     Animated,
+    Dimensions,
+    Easing,
 } from 'react-native';
 
-const { width, height } = Dimensions.get('screen');
-import colors from '../config/colors';
+const { width } = Dimensions.get('screen');
 
 function SlideItem(props) {
-    const { item, addItem } = props;
+    const { item, index, scrollX } = props;
+    const inputRange = [
+        (index - 1) * width,
+        index * width,
+        (index + 1) * width,
+    ];
+
+    const translateY = item.translateY
+        ? scrollX.interpolate({
+              inputRange,
+              outputRange: item.translateY,
+          })
+        : 1;
+    const scale = item.scale
+        ? scrollX.interpolate({
+              inputRange,
+              outputRange: item.scale,
+          })
+        : 1;
+    const rotate = item.rotate
+        ? scrollX.interpolate({
+              inputRange,
+              outputRange: item.rotate,
+          })
+        : '0deg';
+    const opacity = item.opacity
+        ? scrollX.interpolate({
+              inputRange,
+              outputRange: item.opacity,
+              easing: Easing.bezier(0.97, 0, 0.52, 0.44),
+          })
+        : 1;
     return (
         <View style={styles.container}>
             <Animated.Image
-                source={item.img}
-                style={[styles.image, styles.shadowProp]}
+                source={item.img1}
+                style={[
+                    styles.image,
+                    styles.shadowProp,
+                    { opacity },
+                    {
+                        zIndex: 10,
+                        transform: [{ scale }, { translateY }],
+                    },
+                ]}
             />
-            <View style={styles.contentContainer}>
-                <View style={styles.textContainer}>
-                    <Text style={styles.name}>{item.name}</Text>
-                    <Text style={styles.price}>{item.price}$</Text>
-                </View>
-                <Pressable
-                    style={styles.plusButtonContainer}
-                    onPress={() => addItem(item)}
-                >
-                    <Image
-                        source={require('../assets/plus.png')}
-                        style={styles.plusButton}
-                    />
-                </Pressable>
-            </View>
+            <Animated.Image
+                source={item.img2}
+                style={[
+                    styles.image,
+                    styles.shadowProp,
+                    {
+                        transform: [{ rotate }],
+                    },
+                ]}
+            />
         </View>
     );
 }
@@ -47,46 +79,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     image: {
-        flex: 1,
+        position: 'absolute',
+        left: 0,
+        top: 60,
         width: 200,
         height: 200,
         resizeMode: 'center',
         padding: 10,
-    },
-    contentContainer: {
-        justifyContent: 'space-between',
-        height: '100%',
-        padding: 40,
-    },
-    textContainer: {
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-    },
-    name: {
-        fontSize: 32,
-        fontWeight: '600',
-        color: colors.primary,
-    },
-    price: {
-        fontSize: 18,
-        color: colors.primary,
-    },
-    plusButtonContainer: {
-        justifyContent: 'flex-start',
-        alignItems: 'flex-end',
-        alignSelf: 'flex-end',
-    },
-    plusButton: {
-        width: 75,
-        height: 75,
-        marginRight: -15,
-        marginBottom: -15,
-    },
-    shadowProp: {
-        shadowColor: '#820E0E',
-        shadowOffset: { width: 1, height: 15 },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
     },
 });
 

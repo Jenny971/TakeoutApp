@@ -1,35 +1,101 @@
-import React from 'react';
-import { View, StyleSheet, Image, FlatList, Animated } from 'react-native';
+import React, { useRef } from 'react';
+import {
+    View,
+    StyleSheet,
+    Animated,
+    useWindowDimensions,
+    Text,
+    Pressable,
+} from 'react-native';
 
-import SlidesItems from '../config/data';
+import colors from '../config/colors';
+import SlidesItems from '../config/products';
+import stars from '../config/stars';
+import AddButton from './AddButton';
 import SlideItem from './SlideItem';
+import Star from './Star';
 
 function ProductList(props) {
+    const { width, height } = useWindowDimensions();
+    const scrollX = useRef(new Animated.Value(0)).current;
+
     return (
         <View style={styles.productContainer}>
-            <Animated.Image
-                style={[styles.star1]}
-                source={require('../assets/star.png')}
-            />
-            <Image
-                style={[styles.star2]}
-                source={require('../assets/star.png')}
-            />
-            <Image
-                style={[styles.star3]}
-                source={require('../assets/star.png')}
-            />
-            <FlatList
+            {stars.map((star, index) => {
+                return (
+                    <Star data={star} key={`star-${index}`} scrollX={scrollX} />
+                );
+            })}
+            <Animated.FlatList
                 data={SlidesItems}
+                style={StyleSheet.absoluteFill}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <SlideItem item={item} addItem={props.addItem} />
+                renderItem={({ item, index }) => (
+                    <SlideItem
+                        item={item}
+                        index={index}
+                        scrollX={scrollX}
+                    />
                 )}
                 horizontal
                 pagingEnabled
                 snapToAlignment="center"
                 showsHorizontalScrollIndicator={false}
+                onScroll={Animated.event(
+                    [
+                        {
+                            nativeEvent: {
+                                contentOffset: {
+                                    x: scrollX,
+                                },
+                            },
+                        },
+                    ],
+                    { useNativeDriver: false }
+                )}
+                scrollEventThrottle={16}
             />
+            {SlidesItems.map((item, index) => {
+                const inputRange = [
+                    (index - 0.5) * width,
+                    index * width,
+                    (index + 0.5) * width,
+                ];
+                return (
+                    <View
+                        style={styles.contentContainer}
+                        key={`product-${index}`}
+                    >
+                        <Animated.View
+                            style={[
+                                styles.textContainer,
+                                {
+                                    opacity: scrollX.interpolate({
+                                        inputRange,
+                                        outputRange: [0, 1, 0],
+                                    }),
+                                    transform: [
+                                        {
+                                            translateY: scrollX.interpolate({
+                                                inputRange:[
+                                                    (index - 1) * width,
+                                                    index * width,
+                                                    (index + 1) * width,
+                                                ],
+                                                outputRange: [-30, 0, 30],
+                                            }),
+                                        },
+                                    ],
+                                },
+                            ]}
+                        >
+                            <Text style={styles.name}>{item.name}</Text>
+                            <Text style={styles.price}>{item.price}$</Text>
+                        </Animated.View>
+                        <AddButton scrollX={scrollX} addItem={props.addItem} inputRange={inputRange} />
+                    </View>
+                );
+            })}
         </View>
     );
 }
@@ -37,29 +103,36 @@ function ProductList(props) {
 const styles = StyleSheet.create({
     productContainer: {
         flex: 1,
+        paddingHorizontal: 10,
         borderBottomColor: '#F2F1F1',
         borderBottomWidth: 3,
     },
-    star1: {
-        width: 10,
-        height: 10,
+    contentContainer: {
+        flex: 1,
+        height: 200,
+        justifyContent: 'space-between',
         position: 'absolute',
-        top: 115,
-        left: 180,
+        right: 0,
+        top: 50,
+        paddingRight: 40,
     },
-    star2: {
-        width: 15,
-        height: 15,
-        position: 'absolute',
-        top: 125,
-        left: 30,
+    textContainer: {
+        alignItems: 'flex-end',
     },
-    star3: {
-        width: 25,
-        height: 25,
-        position: 'absolute',
-        top: 55,
-        left: 160,
+    name: {
+        fontSize: 32,
+        fontWeight: '600',
+        color: colors.primary,
+    },
+    price: {
+        fontSize: 18,
+        color: colors.primary,
+    },
+    shadowProp: {
+        shadowColor: '#820E0E',
+        shadowOffset: { width: 1, height: 24 },
+        shadowOpacity: 0.25,
+        shadowRadius: 18,
     },
 });
 
